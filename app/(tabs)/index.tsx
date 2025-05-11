@@ -14,7 +14,7 @@ import Animated, {
   FadeInDown,
   Layout 
 } from 'react-native-reanimated';
-import { format, subDays } from 'date-fns';
+import { format, subDays, addDays } from 'date-fns';
 import { useTheme } from '@/context/ThemeContext';
 import EntryInput from '@/components/EntryInput';
 import ProgressIndicator from '@/components/ProgressIndicator';
@@ -67,8 +67,15 @@ export default function TodayScreen() {
     }, 2000);
   };
 
-  const changeDate = (days: number) => {
-    setSelectedDate(current => subDays(current, days));
+  const goToPreviousDay = () => {
+    setSelectedDate(current => subDays(current, 1));
+  };
+
+  const goToNextDay = () => {
+    const tomorrow = addDays(selectedDate, 1);
+    if (format(tomorrow, 'yyyy-MM-dd') <= format(new Date(), 'yyyy-MM-dd')) {
+      setSelectedDate(tomorrow);
+    }
   };
 
   return (
@@ -87,7 +94,7 @@ export default function TodayScreen() {
           >
             <View style={styles.dateSelector}>
               <TouchableOpacity 
-                onPress={() => changeDate(-1)}
+                onPress={goToPreviousDay}
                 style={[styles.dateButton, { backgroundColor: colors.surface }]}
               >
                 <ChevronLeft size={20} color={colors.textSecondary} />
@@ -99,7 +106,7 @@ export default function TodayScreen() {
               </Text>
               
               <TouchableOpacity 
-                onPress={() => changeDate(1)}
+                onPress={goToNextDay}
                 style={[styles.dateButton, { backgroundColor: colors.surface }]}
                 disabled={isToday}
               >
