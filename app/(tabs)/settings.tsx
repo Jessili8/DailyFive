@@ -13,9 +13,7 @@ import {
   Moon,
   Sun,
   MonitorSmartphone,
-  FileText,
   Bell,
-  Info,
   Heart,
   Share2,
   Download,
@@ -24,12 +22,10 @@ import { spacing, fontFamily, fontSizes, borderRadius } from '@/constants/theme'
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useEntries } from '@/hooks/useEntries';
 import { format } from 'date-fns';
-import { useRouter } from 'expo-router';
 
 export default function SettingsScreen() {
   const { colors, theme, setTheme, isDark } = useTheme();
   const { exportToCSV, loading } = useEntries();
-  const router = useRouter();
   
   const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
 
@@ -222,13 +218,6 @@ export default function SettingsScreen() {
         <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
           ABOUT
         </Text>
-        
-        <SettingItem 
-          icon={<Info size={22} color={colors.primary[500]} />}
-          title="About Daily Five"
-          onPress={() => router.push('/about')}
-          delay={300}
-        />
         
         <SettingItem 
           icon={<Heart size={22} color={colors.primary[500]} />}
