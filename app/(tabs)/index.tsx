@@ -6,40 +6,46 @@ import {
   Text,
   KeyboardAvoidingView,
   Platform,
-  SafeAreaView
+  SafeAreaView,
+  TouchableOpacity
 } from 'react-native';
 import Animated, { 
   FadeInUp, 
   FadeInDown,
   Layout 
 } from 'react-native-reanimated';
-import { format } from 'date-fns';
+import { format, subDays } from 'date-fns';
 import { useTheme } from '@/context/ThemeContext';
 import EntryInput from '@/components/EntryInput';
 import ProgressIndicator from '@/components/ProgressIndicator';
 import SaveButton from '@/components/SaveButton';
 import { useEntries } from '@/hooks/useEntries';
-import { spacing, fontFamily, fontSizes } from '@/constants/theme';
+import { spacing, fontFamily, fontSizes, borderRadius } from '@/constants/theme';
+import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 
 export default function TodayScreen() {
   const { colors } = useTheme();
-  const today = format(new Date(), 'MMMM d, yyyy');
-  const { saveEntries, getTodayEntries } = useEntries();
+  const { saveEntries, getEntriesByDate } = useEntries();
   
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [entries, setEntries] = useState<string[]>(['', '', '', '', '']);
   const [isSaving, setIsSaving] = useState(false);
   const [saveComplete, setSaveComplete] = useState(false);
   
   const completedCount = entries.filter(entry => entry.trim().length > 0).length;
+  const isToday = format(selectedDate, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
   
   useEffect(() => {
-    loadTodayEntries();
-  }, []);
+    loadEntries();
+  }, [selectedDate]);
   
-  const loadTodayEntries = async () => {
-    const todayEntries = await getTodayEntries();
-    if (todayEntries) {
-      setEntries(todayEntries);
+  const loadEntries = async () => {
+    const dateString = format(selectedDate, 'yyyy-MM-dd');
+    const savedEntries = await getEntriesByDate(dateString);
+    if (savedEntries) {
+      setEntries(savedEntries);
+    } else {
+      setEntries(['', '', '', '', '']);
     }
   };
 
@@ -51,13 +57,18 @@ export default function TodayScreen() {
 
   const handleSave = async () => {
     setIsSaving(true);
-    await saveEntries(entries);
+    const dateString = format(selectedDate, 'yyyy-MM-dd');
+    await saveEntries(entries, dateString);
     setIsSaving(false);
     setSaveComplete(true);
     
     setTimeout(() => {
       setSaveComplete(false);
     }, 2000);
+  };
+
+  const changeDate = (days: number) => {
+    setSelectedDate(current => subDays(current, days));
   };
 
   return (
@@ -74,11 +85,33 @@ export default function TodayScreen() {
             entering={FadeInDown.duration(600).delay(100)}
             style={styles.header}
           >
-            <Text style={[styles.date, { color: colors.textSecondary }]}>
-              {today}
-            </Text>
+            <View style={styles.dateSelector}>
+              <TouchableOpacity 
+                onPress={() => changeDate(-1)}
+                style={[styles.dateButton, { backgroundColor: colors.surface }]}
+              >
+                <ChevronLeft size={20} color={colors.textSecondary} />
+              </TouchableOpacity>
+              
+              <Text style={[styles.date, { color: colors.textSecondary }]}>
+                {format(selectedDate, 'MMMM d, yyyy')}
+                {isToday && ' (Today)'}
+              </Text>
+              
+              <TouchableOpacity 
+                onPress={() => changeDate(1)}
+                style={[styles.dateButton, { backgroundColor: colors.surface }]}
+                disabled={isToday}
+              >
+                <ChevronRight 
+                  size={20} 
+                  color={isToday ? colors.disabled : colors.textSecondary} 
+                />
+              </TouchableOpacity>
+            </View>
+            
             <Text style={[styles.title, { color: colors.text }]}>
-              What made today great?
+              What made this day great?
             </Text>
             <ProgressIndicator count={completedCount} total={5} />
           </Animated.View>
@@ -128,10 +161,23 @@ const styles = StyleSheet.create({
     marginTop: spacing.lg,
     marginBottom: spacing.xl,
   },
+  dateSelector: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.xs,
+    gap: spacing.md,
+  },
+  dateButton: {
+    width: 32,
+    height: 32,
+    borderRadius: borderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   date: {
     fontFamily: fontFamily.medium,
     fontSize: fontSizes.sm,
-    marginBottom: spacing.xs,
   },
   title: {
     fontFamily: fontFamily.bold,
