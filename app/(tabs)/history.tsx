@@ -13,6 +13,7 @@ import { useEntries } from '@/hooks/useEntries';
 import { format, parseISO } from 'date-fns';
 import { spacing, fontFamily, fontSizes, borderRadius, shadow } from '@/constants/theme';
 import EntryList from '@/components/EntryList';
+import { useFocusEffect } from 'expo-router';
 
 interface DailyEntry {
   date: string;
@@ -27,9 +28,12 @@ export default function HistoryScreen() {
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   
-  useEffect(() => {
-    loadEntries();
-  }, []);
+  // Use useFocusEffect to reload entries when the screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      loadEntries();
+    }, [])
+  );
   
   const loadEntries = async () => {
     setLoading(true);
