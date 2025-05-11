@@ -24,10 +24,12 @@ import { spacing, fontFamily, fontSizes, borderRadius } from '@/constants/theme'
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useEntries } from '@/hooks/useEntries';
 import { format } from 'date-fns';
+import { useRouter } from 'expo-router';
 
 export default function SettingsScreen() {
   const { colors, theme, setTheme, isDark } = useTheme();
   const { exportToCSV, loading } = useEntries();
+  const router = useRouter();
   
   const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
 
@@ -224,7 +226,7 @@ export default function SettingsScreen() {
         <SettingItem 
           icon={<Info size={22} color={colors.primary[500]} />}
           title="About Daily Five"
-          onPress={() => {}}
+          onPress={() => router.push('/about')}
           delay={300}
         />
         
