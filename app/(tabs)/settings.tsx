@@ -23,6 +23,7 @@ import {
 import { spacing, fontFamily, fontSizes, borderRadius } from '@/constants/theme';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useEntries } from '@/hooks/useEntries';
+import { format } from 'date-fns';
 
 export default function SettingsScreen() {
   const { colors, theme, setTheme, isDark } = useTheme();
