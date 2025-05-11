@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   Switch,
   ScrollView,
-  Linking,
+  Platform,
 } from 'react-native';
 import { useTheme } from '@/context/ThemeContext';
 import {
@@ -18,12 +18,15 @@ import {
   Info,
   Heart,
   Share2,
+  Download,
 } from 'lucide-react-native';
 import { spacing, fontFamily, fontSizes, borderRadius } from '@/constants/theme';
 import Animated, { FadeInDown } from 'react-native-reanimated';
+import { useEntries } from '@/hooks/useEntries';
 
 export default function SettingsScreen() {
   const { colors, theme, setTheme, isDark } = useTheme();
+  const { exportToCSV, loading } = useEntries();
   
   const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
 
@@ -32,13 +35,15 @@ export default function SettingsScreen() {
     title, 
     right, 
     onPress,
-    delay = 0
+    delay = 0,
+    loading = false,
   }: { 
     icon: React.ReactNode;
     title: string;
     right?: React.ReactNode;
     onPress?: () => void;
     delay?: number;
+    loading?: boolean;
   }) => (
     <Animated.View entering={FadeInDown.duration(400).delay(delay)}>
       <TouchableOpacity 
@@ -47,7 +52,7 @@ export default function SettingsScreen() {
           { backgroundColor: colors.card, borderColor: colors.border }
         ]}
         onPress={onPress}
-        disabled={!onPress}
+        disabled={!onPress || loading}
       >
         <View style={styles.settingItemLeft}>
           {icon}
@@ -62,9 +67,23 @@ export default function SettingsScreen() {
     </Animated.View>
   );
 
-  const exportData = () => {
-    // In a real app, this would export the data
-    console.log('Export data feature would go here');
+  const handleExport = async () => {
+    const csv = await exportToCSV();
+    
+    if (csv) {
+      if (Platform.OS === 'web') {
+        // Create blob and download for web
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `daily-five-entries-${format(new Date(), 'yyyy-MM-dd')}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    }
   };
 
   const shareApp = () => {
@@ -183,10 +202,15 @@ export default function SettingsScreen() {
         />
         
         <SettingItem 
-          icon={<FileText size={22} color={colors.primary[500]} />}
-          title="Export Entries"
-          right={<Text style={[styles.actionText, { color: colors.primary[600] }]}>Export</Text>}
-          onPress={exportData}
+          icon={<Download size={22} color={colors.primary[500]} />}
+          title="Export to CSV"
+          right={
+            <Text style={[styles.actionText, { color: colors.primary[600] }]}>
+              {loading ? 'Exporting...' : 'Export'}
+            </Text>
+          }
+          onPress={handleExport}
+          loading={loading}
           delay={200}
         />
       </View>

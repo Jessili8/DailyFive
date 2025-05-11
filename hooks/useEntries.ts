@@ -133,6 +133,42 @@ export const useEntries = () => {
     }
   }, []);
 
+  const exportToCSV = useCallback(async (): Promise<string> => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const allEntries = await getAllEntries();
+      
+      // Create CSV header
+      let csv = 'Date,Entry 1,Entry 2,Entry 3,Entry 4,Entry 5\n';
+      
+      // Add entries to CSV
+      allEntries.forEach(({ date, entries }) => {
+        // Format date for better readability
+        const formattedDate = format(new Date(date), 'MM/dd/yyyy');
+        
+        // Escape and clean entries to prevent CSV injection
+        const cleanedEntries = entries.map(entry => {
+          // Remove newlines and quotes
+          const cleaned = entry.replace(/[\n\r"]/g, ' ').trim();
+          // Escape commas by wrapping in quotes
+          return cleaned.includes(',') ? `"${cleaned}"` : cleaned;
+        });
+        
+        csv += `${formattedDate},${cleanedEntries.join(',')}\n`;
+      });
+      
+      return csv;
+    } catch (err) {
+      setError('Failed to export entries');
+      console.error('Failed to export entries:', err);
+      return '';
+    } finally {
+      setLoading(false);
+    }
+  }, [getAllEntries]);
+
   return {
     loading,
     error,
@@ -141,5 +177,6 @@ export const useEntries = () => {
     getAllEntries,
     getEntriesByDate,
     clearAllEntries,
+    exportToCSV,
   };
 };
