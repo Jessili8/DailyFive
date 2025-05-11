@@ -1,12 +1,14 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image, ScrollView } from 'react-native';
-import { Stack } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import { useTheme } from '@/context/ThemeContext';
 import { spacing, fontFamily, fontSizes, borderRadius, shadow } from '@/constants/theme';
 import Animated, { FadeInDown } from 'react-native-reanimated';
+import { ArrowLeft } from 'lucide-react-native';
 
 export default function AboutScreen() {
   const { colors } = useTheme();
+  const router = useRouter();
 
   return (
     <>
@@ -21,6 +23,14 @@ export default function AboutScreen() {
             color: colors.text,
           },
           headerShadowVisible: false,
+          headerLeft: () => (
+            <ArrowLeft
+              color={colors.primary[500]}
+              size={24}
+              onPress={() => router.back()}
+              style={{ marginRight: spacing.md }}
+            />
+          ),
         }} 
       />
       
