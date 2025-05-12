@@ -21,7 +21,7 @@ export const translations = {
       exportToCsv: 'Export to CSV',
       importFromCsv: 'Import CSV',
       about: 'About DailyFive',
-      github: 'Github repository'
+      github: 'Github repository',
       rateApp: 'Rate the App',
       shareWithFriends: 'Share with Friends',
       version: 'Version',
