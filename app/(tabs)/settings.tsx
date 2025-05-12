@@ -19,6 +19,9 @@ import {
   Languages,
   Info,
   ExternalLink,
+  Sun,
+  Moon,
+  MonitorSmartphone,
 } from 'lucide-react-native';
 import { spacing, fontFamily, fontSizes, borderRadius } from '@/constants/theme';
 import Animated, { FadeInDown } from 'react-native-reanimated';
@@ -29,7 +32,7 @@ import { useRouter } from 'expo-router';
 import * as FileSystem from 'expo-file-system';
 
 export default function SettingsScreen() {
-  const { colors } = useTheme();
+  const { colors, theme, setTheme } = useTheme();
   const { language, setLanguage, t } = useLanguage();
   const { exportToCSV, loading, importFromCSV } = useEntries();
   const { enableNotifications, disableNotifications, getNotificationStatus } = useNotifications();
@@ -394,3 +397,96 @@ export default function SettingsScreen() {
     </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  contentContainer: {
+    padding: spacing.md,
+  },
+  section: {
+    marginBottom: spacing.lg,
+    paddingBottom: spacing.lg,
+    borderBottomWidth: 1,
+  },
+  sectionTitle: {
+    fontSize: fontSizes.sm,
+    fontFamily: fontFamily.medium,
+    marginBottom: spacing.sm,
+    textTransform: 'uppercase',
+  },
+  settingItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: spacing.md,
+    borderRadius: borderRadius.md,
+    marginBottom: spacing.sm,
+    borderWidth: 1,
+  },
+  settingItemLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  settingItemTitle: {
+    marginLeft: spacing.sm,
+    fontSize: fontSizes.md,
+    fontFamily: fontFamily.regular,
+  },
+  settingItemRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  actionText: {
+    fontSize: fontSizes.sm,
+    fontFamily: fontFamily.medium,
+  },
+  themeSelector: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    marginTop: spacing.sm,
+  },
+  themeOption: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: spacing.md,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    gap: spacing.sm,
+  },
+  themeOptionText: {
+    fontSize: fontSizes.sm,
+    fontFamily: fontFamily.medium,
+  },
+  languageButton: {
+    padding: spacing.sm,
+  },
+  languageText: {
+    fontSize: fontSizes.sm,
+    fontFamily: fontFamily.medium,
+  },
+  languageOptions: {
+    marginTop: spacing.sm,
+    gap: spacing.sm,
+  },
+  languageOption: {
+    padding: spacing.md,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    alignItems: 'center',
+  },
+  languageOptionText: {
+    fontSize: fontSizes.md,
+    fontFamily: fontFamily.medium,
+  },
+  versionText: {
+    textAlign: 'center',
+    fontSize: fontSizes.sm,
+    fontFamily: fontFamily.regular,
+    marginTop: spacing.lg,
+    marginBottom: spacing.xl,
+  },
+});
