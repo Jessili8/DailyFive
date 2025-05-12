@@ -60,7 +60,6 @@ export default function SettingsScreen() {
 
   const handleImport = async () => {
     try {
-      // For web platform
       if (Platform.OS === 'web') {
         const input = document.createElement('input');
         input.type = 'file';
@@ -72,7 +71,13 @@ export default function SettingsScreen() {
             const reader = new FileReader();
             reader.onload = async (event) => {
               const csvContent = event.target?.result as string;
-              await importFromCSV(csvContent);
+              const success = await importFromCSV(csvContent);
+              
+              if (success) {
+                alert('Import completed successfully!');
+                // Force refresh the app by reloading the page
+                window.location.reload();
+              }
             };
             reader.readAsText(file);
           }
