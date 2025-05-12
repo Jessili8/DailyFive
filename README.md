@@ -5,9 +5,11 @@ DailyFive is a beautiful, mindful journaling app inspired by Song Hye-kyo's dail
 ## Features
 
 - 📝 Daily gratitude journaling
-- 📅 History view of past entries
+- 📅 History view with calendar navigation
 - 📊 Progress tracking
 - 🌓 Light/dark mode support
+- 🌐 Multi-language support (English & Traditional Chinese)
+- 🔔 Daily reminder notifications
 - 📱 Responsive design for all devices
 - 💾 Local storage persistence
 - 📤 Export entries to CSV
@@ -47,6 +49,7 @@ This project is built with:
 - [Expo Router](https://docs.expo.dev/router/introduction/) - File-based routing
 - [React Native Reanimated](https://docs.swmansion.com/react-native-reanimated/) - Smooth animations
 - [AsyncStorage](https://react-native-async-storage.github.io/async-storage/) - Local data persistence
+- [Expo Notifications](https://docs.expo.dev/versions/latest/sdk/notifications/) - Push notifications
 
 ### Project Structure
 
@@ -56,11 +59,22 @@ daily-five/
 │   ├── (tabs)/           # Tab-based navigation
 │   └── _layout.tsx       # Root layout
 ├── components/           # Reusable components
-├── constants/           # Theme and configuration
+├── constants/           # Theme, translations, and configuration
 ├── context/            # React Context providers
 ├── hooks/              # Custom React hooks
 └── types/              # TypeScript definitions
 ```
+
+### Features
+
+#### Multi-language Support
+The app supports both English and Traditional Chinese. Language settings can be changed in the Settings tab and are persisted across sessions.
+
+#### Notifications
+Daily reminders can be enabled to help maintain your gratitude practice. Notifications are scheduled for 8:00 PM daily and work on both web and mobile platforms.
+
+#### Data Export
+All entries can be exported to CSV format for backup or analysis. The export includes dates and entries in a format suitable for spreadsheet applications.
 
 ### Building for Production
 
