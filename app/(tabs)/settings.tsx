@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
@@ -22,12 +22,32 @@ import { spacing, fontFamily, fontSizes, borderRadius } from '@/constants/theme'
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useEntries } from '@/hooks/useEntries';
 import { format } from 'date-fns';
+import { useNotifications } from '@/hooks/useNotifications';
 
 export default function SettingsScreen() {
   const { colors, theme, setTheme, isDark } = useTheme();
   const { exportToCSV, loading } = useEntries();
+  const { enableNotifications, disableNotifications, getNotificationStatus } = useNotifications();
   
-  const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
+  const [notificationsEnabled, setNotificationsEnabled] = React.useState(false);
+
+  useEffect(() => {
+    // Load notification status
+    getNotificationStatus().then(setNotificationsEnabled);
+  }, []);
+
+  const handleNotificationToggle = async (value: boolean) => {
+    if (value) {
+      const success = await enableNotifications();
+      setNotificationsEnabled(success);
+      if (!success && Platform.OS === 'web') {
+        alert('Please enable notifications in your browser settings to receive daily reminders.');
+      }
+    } else {
+      await disableNotifications();
+      setNotificationsEnabled(false);
+    }
+  };
 
   const SettingItem = ({ 
     icon, 
@@ -189,7 +209,7 @@ export default function SettingsScreen() {
           right={
             <Switch
               value={notificationsEnabled}
-              onValueChange={setNotificationsEnabled}
+              onValueChange={handleNotificationToggle}
               trackColor={{ 
                 false: colors.disabled, 
                 true: colors.primary[400] 
