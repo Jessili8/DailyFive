@@ -5,15 +5,18 @@ import {
   StyleSheet, 
   FlatList, 
   TouchableOpacity, 
-  ActivityIndicator 
+  ActivityIndicator,
+  Platform,
+  Modal,
 } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { useTheme } from '@/context/ThemeContext';
 import { useEntries } from '@/hooks/useEntries';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, isValid } from 'date-fns';
 import { spacing, fontFamily, fontSizes, borderRadius, shadow } from '@/constants/theme';
 import EntryList from '@/components/EntryList';
 import { useFocusEffect } from 'expo-router';
+import { Calendar, ChevronDown } from 'lucide-react-native';
 
 interface DailyEntry {
   date: string;
@@ -27,6 +30,7 @@ export default function HistoryScreen() {
   const [entries, setEntries] = useState<DailyEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
   
   // Use useFocusEffect to reload entries when the screen comes into focus
   useFocusEffect(
@@ -45,36 +49,63 @@ export default function HistoryScreen() {
       setSelectedDate(allEntries[0].date);
     }
   };
-  
-  const renderDateItem = ({ item }: { item: DailyEntry }) => {
-    const isSelected = selectedDate === item.date;
-    const formattedDate = format(parseISO(item.date), 'MMM d');
-    
-    return (
-      <TouchableOpacity
-        style={[
-          styles.dateItem,
-          { 
-            backgroundColor: isSelected ? colors.primary[500] : colors.surface,
-            borderColor: isSelected ? colors.primary[500] : colors.border,
-          },
-          shadow.sm
-        ]}
-        onPress={() => setSelectedDate(item.date)}
-      >
-        <Text 
-          style={[
-            styles.dateText, 
-            { color: isSelected ? 'white' : colors.text }
-          ]}
-        >
-          {formattedDate}
-        </Text>
-      </TouchableOpacity>
-    );
+
+  const handleDateSelect = (date: string) => {
+    setSelectedDate(date);
+    setShowDatePicker(false);
   };
   
-  const selectedEntries = entries.find(entry => entry.date === selectedDate)?.entries || [];
+  const DatePickerModal = () => (
+    <Modal
+      visible={showDatePicker}
+      transparent
+      animationType="fade"
+      onRequestClose={() => setShowDatePicker(false)}
+    >
+      <TouchableOpacity
+        style={[styles.modalOverlay, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]}
+        onPress={() => setShowDatePicker(false)}
+        activeOpacity={1}
+      >
+        <View 
+          style={[
+            styles.datePickerContainer,
+            { backgroundColor: colors.card }
+          ]}
+        >
+          <Text style={[styles.datePickerTitle, { color: colors.text }]}>
+            Select Date
+          </Text>
+          <FlatList
+            data={entries}
+            keyExtractor={item => item.date}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={[
+                  styles.datePickerItem,
+                  selectedDate === item.date && {
+                    backgroundColor: colors.primary[500],
+                  },
+                ]}
+                onPress={() => handleDateSelect(item.date)}
+              >
+                <Text
+                  style={[
+                    styles.datePickerItemText,
+                    { color: selectedDate === item.date ? 'white' : colors.text },
+                  ]}
+                >
+                  {format(parseISO(item.date), 'MMMM d, yyyy')}
+                </Text>
+              </TouchableOpacity>
+            )}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.datePickerList}
+          />
+        </View>
+      </TouchableOpacity>
+    </Modal>
+  );
   
   if (loading) {
     return (
@@ -94,30 +125,36 @@ export default function HistoryScreen() {
     );
   }
   
+  const selectedEntries = entries.find(entry => entry.date === selectedDate)?.entries || [];
+  
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <Animated.View 
         entering={FadeIn.duration(500)}
-        style={styles.datesContainer}
+        style={styles.header}
       >
-        <FlatList
-          data={entries}
-          renderItem={renderDateItem}
-          keyExtractor={item => item.date}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.datesList}
-        />
+        <TouchableOpacity
+          style={[
+            styles.dateSelector,
+            { backgroundColor: colors.card, borderColor: colors.border }
+          ]}
+          onPress={() => setShowDatePicker(true)}
+        >
+          <Calendar size={20} color={colors.primary[500]} />
+          <Text style={[styles.selectedDate, { color: colors.text }]}>
+            {selectedDate ? format(parseISO(selectedDate), 'MMMM d, yyyy') : 'Select Date'}
+          </Text>
+          <ChevronDown size={20} color={colors.textSecondary} />
+        </TouchableOpacity>
       </Animated.View>
+      
+      <DatePickerModal />
       
       {selectedDate && (
         <Animated.View 
           entering={FadeIn.duration(500).delay(300)}
           style={styles.entriesContainer}
         >
-          <Text style={[styles.selectedDate, { color: colors.text }]}>
-            {format(parseISO(selectedDate), 'MMMM d, yyyy')}
-          </Text>
           <EntryList entries={selectedEntries} />
         </Animated.View>
       )}
@@ -147,30 +184,53 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 24,
   },
-  datesContainer: {
-    marginBottom: spacing.lg,
+  header: {
+    marginBottom: spacing.xl,
   },
-  datesList: {
-    paddingVertical: spacing.md,
-    gap: spacing.sm,
-  },
-  dateItem: {
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
+  dateSelector: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: spacing.md,
     borderRadius: borderRadius.lg,
     borderWidth: 1,
-    marginRight: spacing.sm,
+    gap: spacing.sm,
   },
-  dateText: {
+  selectedDate: {
+    flex: 1,
     fontFamily: fontFamily.semibold,
-    fontSize: fontSizes.sm,
+    fontSize: fontSizes.md,
   },
   entriesContainer: {
     flex: 1,
   },
-  selectedDate: {
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.lg,
+  },
+  datePickerContainer: {
+    width: '100%',
+    maxHeight: '80%',
+    borderRadius: borderRadius.xl,
+    padding: spacing.lg,
+    ...shadow.lg,
+  },
+  datePickerTitle: {
     fontFamily: fontFamily.bold,
-    fontSize: fontSizes.lg,
-    marginBottom: spacing.md,
+    fontSize: fontSizes.xl,
+    marginBottom: spacing.lg,
+    textAlign: 'center',
+  },
+  datePickerList: {
+    gap: spacing.xs,
+  },
+  datePickerItem: {
+    padding: spacing.md,
+    borderRadius: borderRadius.lg,
+  },
+  datePickerItemText: {
+    fontFamily: fontFamily.medium,
+    fontSize: fontSizes.md,
   },
 });
