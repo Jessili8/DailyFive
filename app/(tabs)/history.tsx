@@ -3,20 +3,18 @@ import {
   View, 
   Text, 
   StyleSheet, 
-  FlatList, 
   TouchableOpacity, 
   ActivityIndicator,
   Platform,
-  Modal,
 } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { useTheme } from '@/context/ThemeContext';
 import { useEntries } from '@/hooks/useEntries';
-import { format, parseISO, isValid } from 'date-fns';
+import { format, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay } from 'date-fns';
 import { spacing, fontFamily, fontSizes, borderRadius, shadow } from '@/constants/theme';
 import EntryList from '@/components/EntryList';
 import { useFocusEffect } from 'expo-router';
-import { Calendar, ChevronDown } from 'lucide-react-native';
+import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 
 interface DailyEntry {
   date: string;
@@ -30,9 +28,8 @@ export default function HistoryScreen() {
   const [entries, setEntries] = useState<DailyEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [currentMonth, setCurrentMonth] = useState(new Date());
   
-  // Use useFocusEffect to reload entries when the screen comes into focus
   useFocusEffect(
     React.useCallback(() => {
       loadEntries();
@@ -47,65 +44,62 @@ export default function HistoryScreen() {
     
     if (allEntries.length > 0) {
       setSelectedDate(allEntries[0].date);
+      setCurrentMonth(parseISO(allEntries[0].date));
     }
   };
 
-  const handleDateSelect = (date: string) => {
-    setSelectedDate(date);
-    setShowDatePicker(false);
+  const getDaysInMonth = () => {
+    const start = startOfMonth(currentMonth);
+    const end = endOfMonth(currentMonth);
+    return eachDayOfInterval({ start, end });
   };
-  
-  const DatePickerModal = () => (
-    <Modal
-      visible={showDatePicker}
-      transparent
-      animationType="fade"
-      onRequestClose={() => setShowDatePicker(false)}
-    >
+
+  const hasEntryForDate = (date: Date) => {
+    return entries.some(entry => 
+      isSameDay(parseISO(entry.date), date)
+    );
+  };
+
+  const renderCalendarDay = (date: Date) => {
+    const isSelected = selectedDate && isSameDay(parseISO(selectedDate), date);
+    const hasEntry = hasEntryForDate(date);
+    const isCurrentMonth = isSameMonth(date, currentMonth);
+
+    return (
       <TouchableOpacity
-        style={[styles.modalOverlay, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]}
-        onPress={() => setShowDatePicker(false)}
-        activeOpacity={1}
+        key={date.toISOString()}
+        style={[
+          styles.calendarDay,
+          isSelected && { backgroundColor: colors.primary[500] },
+          !isCurrentMonth && { opacity: 0.3 },
+        ]}
+        onPress={() => {
+          if (hasEntry) {
+            setSelectedDate(format(date, 'yyyy-MM-dd'));
+          }
+        }}
+        disabled={!hasEntry}
       >
-        <View 
+        <Text
           style={[
-            styles.datePickerContainer,
-            { backgroundColor: colors.card }
+            styles.calendarDayText,
+            { color: isSelected ? 'white' : colors.text },
+            !hasEntry && { color: colors.textSecondary },
           ]}
         >
-          <Text style={[styles.datePickerTitle, { color: colors.text }]}>
-            Select Date
-          </Text>
-          <FlatList
-            data={entries}
-            keyExtractor={item => item.date}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={[
-                  styles.datePickerItem,
-                  selectedDate === item.date && {
-                    backgroundColor: colors.primary[500],
-                  },
-                ]}
-                onPress={() => handleDateSelect(item.date)}
-              >
-                <Text
-                  style={[
-                    styles.datePickerItemText,
-                    { color: selectedDate === item.date ? 'white' : colors.text },
-                  ]}
-                >
-                  {format(parseISO(item.date), 'MMMM d, yyyy')}
-                </Text>
-              </TouchableOpacity>
-            )}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.datePickerList}
+          {format(date, 'd')}
+        </Text>
+        {hasEntry && !isSelected && (
+          <View 
+            style={[
+              styles.entryDot,
+              { backgroundColor: colors.primary[500] }
+            ]} 
           />
-        </View>
+        )}
       </TouchableOpacity>
-    </Modal>
-  );
+    );
+  };
   
   if (loading) {
     return (
@@ -126,35 +120,60 @@ export default function HistoryScreen() {
   }
   
   const selectedEntries = entries.find(entry => entry.date === selectedDate)?.entries || [];
+  const days = getDaysInMonth();
   
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <Animated.View 
         entering={FadeIn.duration(500)}
-        style={styles.header}
+        style={styles.calendarContainer}
       >
-        <TouchableOpacity
-          style={[
-            styles.dateSelector,
-            { backgroundColor: colors.card, borderColor: colors.border }
-          ]}
-          onPress={() => setShowDatePicker(true)}
-        >
-          <Calendar size={20} color={colors.primary[500]} />
-          <Text style={[styles.selectedDate, { color: colors.text }]}>
-            {selectedDate ? format(parseISO(selectedDate), 'MMMM d, yyyy') : 'Select Date'}
+        <View style={styles.calendarHeader}>
+          <TouchableOpacity
+            onPress={() => setCurrentMonth(date => new Date(date.setMonth(date.getMonth() - 1)))}
+            style={[styles.monthButton, { backgroundColor: colors.surface }]}
+          >
+            <ChevronLeft size={20} color={colors.textSecondary} />
+          </TouchableOpacity>
+          
+          <Text style={[styles.monthText, { color: colors.text }]}>
+            {format(currentMonth, 'MMMM yyyy')}
           </Text>
-          <ChevronDown size={20} color={colors.textSecondary} />
-        </TouchableOpacity>
+          
+          <TouchableOpacity
+            onPress={() => setCurrentMonth(date => new Date(date.setMonth(date.getMonth() + 1)))}
+            style={[styles.monthButton, { backgroundColor: colors.surface }]}
+          >
+            <ChevronRight size={20} color={colors.textSecondary} />
+          </TouchableOpacity>
+        </View>
+
+        <View style={[styles.calendar, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <View style={styles.weekDays}>
+            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+              <Text 
+                key={day} 
+                style={[styles.weekDayText, { color: colors.textSecondary }]}
+              >
+                {day}
+              </Text>
+            ))}
+          </View>
+          
+          <View style={styles.calendarDays}>
+            {days.map(date => renderCalendarDay(date))}
+          </View>
+        </View>
       </Animated.View>
-      
-      <DatePickerModal />
       
       {selectedDate && (
         <Animated.View 
           entering={FadeIn.duration(500).delay(300)}
           style={styles.entriesContainer}
         >
+          <Text style={[styles.selectedDateText, { color: colors.text }]}>
+            {format(parseISO(selectedDate), 'MMMM d, yyyy')}
+          </Text>
           <EntryList entries={selectedEntries} />
         </Animated.View>
       )}
@@ -184,53 +203,73 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 24,
   },
-  header: {
+  calendarContainer: {
     marginBottom: spacing.xl,
   },
-  dateSelector: {
+  calendarHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: spacing.md,
-    borderRadius: borderRadius.lg,
-    borderWidth: 1,
-    gap: spacing.sm,
+    justifyContent: 'space-between',
+    marginBottom: spacing.md,
   },
-  selectedDate: {
-    flex: 1,
-    fontFamily: fontFamily.semibold,
+  monthButton: {
+    width: 40,
+    height: 40,
+    borderRadius: borderRadius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  monthText: {
+    fontFamily: fontFamily.bold,
+    fontSize: fontSizes.lg,
+  },
+  calendar: {
+    borderRadius: borderRadius.xl,
+    padding: spacing.md,
+    borderWidth: 1,
+    ...shadow.sm,
+  },
+  weekDays: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: spacing.md,
+  },
+  weekDayText: {
+    fontFamily: fontFamily.medium,
+    fontSize: fontSizes.sm,
+    width: 40,
+    textAlign: 'center',
+  },
+  calendarDays: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-around',
+  },
+  calendarDay: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: borderRadius.lg,
+    marginBottom: spacing.xs,
+  },
+  calendarDayText: {
+    fontFamily: fontFamily.medium,
     fontSize: fontSizes.md,
+  },
+  entryDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    position: 'absolute',
+    bottom: 6,
   },
   entriesContainer: {
     flex: 1,
   },
-  modalOverlay: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: spacing.lg,
-  },
-  datePickerContainer: {
-    width: '100%',
-    maxHeight: '80%',
-    borderRadius: borderRadius.xl,
-    padding: spacing.lg,
-    ...shadow.lg,
-  },
-  datePickerTitle: {
+  selectedDateText: {
     fontFamily: fontFamily.bold,
-    fontSize: fontSizes.xl,
-    marginBottom: spacing.lg,
-    textAlign: 'center',
-  },
-  datePickerList: {
-    gap: spacing.xs,
-  },
-  datePickerItem: {
-    padding: spacing.md,
-    borderRadius: borderRadius.lg,
-  },
-  datePickerItemText: {
-    fontFamily: fontFamily.medium,
-    fontSize: fontSizes.md,
+    fontSize: fontSizes.lg,
+    marginBottom: spacing.md,
   },
 });
