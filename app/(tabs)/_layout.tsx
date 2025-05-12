@@ -1,6 +1,6 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
-import { Pencil, Calendar, Settings, Info } from 'lucide-react-native';
+import { Pencil, Calendar, Settings } from 'lucide-react-native';
 import { useTheme } from '@/context/ThemeContext';
 import { useLanguage } from '@/context/LanguageContext';
 
@@ -57,14 +57,6 @@ export default function TabLayout() {
         options={{
           title: t('tabs.settings'),
           tabBarIcon: ({ color, size }) => <Settings size={size} color={color} />,
-          headerShown: true,
-        }}
-      />
-      <Tabs.Screen
-        name="about"
-        options={{
-          title: t('tabs.about'),
-          tabBarIcon: ({ color, size }) => <Info size={size} color={color} />,
           headerShown: true,
         }}
       />

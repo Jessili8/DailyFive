@@ -1,14 +1,23 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView, Linking, Platform } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { useTheme } from '@/context/ThemeContext';
 import { spacing, fontFamily, fontSizes, borderRadius, shadow } from '@/constants/theme';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { ArrowLeft } from 'lucide-react-native';
+import { ArrowLeft, Github } from 'lucide-react-native';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 
 export default function AboutScreen() {
   const { colors } = useTheme();
   const router = useRouter();
+
+  const openGitHub = () => {
+    if (Platform.OS === 'web') {
+      window.open('https://github.com/Jessili8/DailyFive', '_blank');
+    } else {
+      Linking.openURL('https://github.com/Jessili8/DailyFive');
+    }
+  };
 
   return (
     <>
@@ -30,6 +39,11 @@ export default function AboutScreen() {
               onPress={() => router.back()}
               style={{ marginRight: spacing.md }}
             />
+          ),
+          headerRight: () => (
+            <TouchableOpacity onPress={openGitHub}>
+              <Github color={colors.primary[500]} size={24} />
+            </TouchableOpacity>
           ),
         }} 
       />

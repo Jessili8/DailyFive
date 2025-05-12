@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { format } from 'date-fns';
+import { format, parse } from 'date-fns';
 
 const ENTRIES_STORAGE_KEY = 'daily_five_entries';
 
@@ -18,31 +18,22 @@ export const useEntries = () => {
       setLoading(true);
       setError(null);
       
-      // Use provided date or today's date
       const entryDate = date || format(new Date(), 'yyyy-MM-dd');
-      
-      // Get all existing entries
       const storedData = await AsyncStorage.getItem(ENTRIES_STORAGE_KEY);
       const allEntries: DailyEntry[] = storedData ? JSON.parse(storedData) : [];
       
-      // Check if we already have an entry for this date
       const dateIndex = allEntries.findIndex(entry => entry.date === entryDate);
       
       if (dateIndex >= 0) {
-        // Update existing entry
         allEntries[dateIndex].entries = entries;
       } else {
-        // Add new entry
         allEntries.unshift({
           date: entryDate,
           entries,
         });
       }
       
-      // Sort entries by date (newest first)
       allEntries.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-      
-      // Save back to storage
       await AsyncStorage.setItem(ENTRIES_STORAGE_KEY, JSON.stringify(allEntries));
       
       return true;
@@ -60,14 +51,9 @@ export const useEntries = () => {
       setLoading(true);
       setError(null);
       
-      // Get today's date in ISO format
       const today = format(new Date(), 'yyyy-MM-dd');
-      
-      // Get all stored entries
       const storedData = await AsyncStorage.getItem(ENTRIES_STORAGE_KEY);
       const allEntries: DailyEntry[] = storedData ? JSON.parse(storedData) : [];
-      
-      // Find today's entry
       const todayEntry = allEntries.find(entry => entry.date === today);
       
       return todayEntry ? todayEntry.entries : ['', '', '', '', ''];
@@ -87,7 +73,6 @@ export const useEntries = () => {
       
       const storedData = await AsyncStorage.getItem(ENTRIES_STORAGE_KEY);
       const allEntries: DailyEntry[] = storedData ? JSON.parse(storedData) : [];
-      
       const dateEntry = allEntries.find(entry => entry.date === date);
       
       return dateEntry ? dateEntry.entries : ['', '', '', '', ''];
@@ -133,26 +118,74 @@ export const useEntries = () => {
     }
   }, []);
 
+  const importFromCSV = useCallback(async (csvContent: string): Promise<boolean> => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const lines = csvContent.split('\n');
+      const headers = lines[0].split(',');
+
+      // Validate headers
+      const expectedHeaders = ['Date', 'Entry 1', 'Entry 2', 'Entry 3', 'Entry 4', 'Entry 5'];
+      const isValidHeader = headers.every((header, index) => 
+        header.trim() === expectedHeaders[index]
+      );
+
+      if (!isValidHeader) {
+        throw new Error('Invalid CSV format. Please use the correct template.');
+      }
+
+      const entries: DailyEntry[] = [];
+
+      for (let i = 1; i < lines.length; i++) {
+        if (!lines[i].trim()) continue;
+
+        const values = lines[i].split(',').map(value => 
+          value.trim().replace(/^"(.*)"$/, '$1')
+        );
+
+        const date = format(parse(values[0], 'MM/dd/yyyy', new Date()), 'yyyy-MM-dd');
+        const dailyEntries = values.slice(1);
+
+        if (dailyEntries.length !== 5) {
+          throw new Error(`Invalid number of entries at line ${i + 1}`);
+        }
+
+        entries.push({
+          date,
+          entries: dailyEntries,
+        });
+      }
+
+      // Sort entries by date (newest first)
+      entries.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+      // Save to storage
+      await AsyncStorage.setItem(ENTRIES_STORAGE_KEY, JSON.stringify(entries));
+      return true;
+    } catch (err) {
+      setError('Failed to import CSV');
+      console.error('Failed to import CSV:', err);
+      alert(err instanceof Error ? err.message : 'Failed to import CSV');
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   const exportToCSV = useCallback(async (): Promise<string> => {
     try {
       setLoading(true);
       setError(null);
       
       const allEntries = await getAllEntries();
-      
-      // Create CSV header
       let csv = 'Date,Entry 1,Entry 2,Entry 3,Entry 4,Entry 5\n';
       
-      // Add entries to CSV
       allEntries.forEach(({ date, entries }) => {
-        // Format date for better readability
         const formattedDate = format(new Date(date), 'MM/dd/yyyy');
-        
-        // Escape and clean entries to prevent CSV injection
         const cleanedEntries = entries.map(entry => {
-          // Remove newlines and quotes
           const cleaned = entry.replace(/[\n\r"]/g, ' ').trim();
-          // Escape commas by wrapping in quotes
           return cleaned.includes(',') ? `"${cleaned}"` : cleaned;
         });
         
@@ -178,5 +211,6 @@ export const useEntries = () => {
     getEntriesByDate,
     clearAllEntries,
     exportToCSV,
+    importFromCSV,
   };
 };

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -7,35 +7,38 @@ import {
   Switch,
   ScrollView,
   Platform,
+  Clipboard,
 } from 'react-native';
 import { useTheme } from '@/context/ThemeContext';
 import { useLanguage } from '@/context/LanguageContext';
 import {
-  Moon,
-  Sun,
-  MonitorSmartphone,
   Bell,
   Heart,
   Share2,
   Download,
   Languages,
+  Info,
+  ExternalLink,
 } from 'lucide-react-native';
 import { spacing, fontFamily, fontSizes, borderRadius } from '@/constants/theme';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useEntries } from '@/hooks/useEntries';
 import { format } from 'date-fns';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useRouter } from 'expo-router';
+import * as FileSystem from 'expo-file-system';
 
 export default function SettingsScreen() {
-  const { colors, theme, setTheme, isDark } = useTheme();
+  const { colors } = useTheme();
   const { language, setLanguage, t } = useLanguage();
-  const { exportToCSV, loading } = useEntries();
+  const { exportToCSV, loading, importFromCSV } = useEntries();
   const { enableNotifications, disableNotifications, getNotificationStatus } = useNotifications();
+  const router = useRouter();
   
   const [notificationsEnabled, setNotificationsEnabled] = React.useState(false);
   const [showLanguageOptions, setShowLanguageOptions] = React.useState(false);
 
-  useEffect(() => {
+  React.useEffect(() => {
     getNotificationStatus().then(setNotificationsEnabled);
   }, []);
 
@@ -49,6 +52,61 @@ export default function SettingsScreen() {
     } else {
       await disableNotifications();
       setNotificationsEnabled(false);
+    }
+  };
+
+  const handleImport = async () => {
+    try {
+      // For web platform
+      if (Platform.OS === 'web') {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.csv';
+        
+        input.onchange = async (e) => {
+          const file = (e.target as HTMLInputElement).files?.[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = async (event) => {
+              const csvContent = event.target?.result as string;
+              await importFromCSV(csvContent);
+            };
+            reader.readAsText(file);
+          }
+        };
+        
+        input.click();
+      }
+    } catch (error) {
+      console.error('Error importing CSV:', error);
+      alert('Failed to import CSV file');
+    }
+  };
+
+  const handleExport = async () => {
+    const csv = await exportToCSV();
+    
+    if (csv) {
+      if (Platform.OS === 'web') {
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `daily-five-entries-${format(new Date(), 'yyyy-MM-dd')}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    }
+  };
+
+  const shareApp = async () => {
+    try {
+      await Clipboard.setString('https://dailyfive.netlify.app');
+      alert('Link copied to clipboard!');
+    } catch (error) {
+      console.error('Failed to copy link:', error);
     }
   };
 
@@ -88,28 +146,6 @@ export default function SettingsScreen() {
       </TouchableOpacity>
     </Animated.View>
   );
-
-  const handleExport = async () => {
-    const csv = await exportToCSV();
-    
-    if (csv) {
-      if (Platform.OS === 'web') {
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        const url = URL.createObjectURL(blob);
-        link.setAttribute('href', url);
-        link.setAttribute('download', `daily-five-entries-${format(new Date(), 'yyyy-MM-dd')}.csv`);
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      }
-    }
-  };
-
-  const shareApp = () => {
-    console.log('Share app feature would go here');
-  };
 
   return (
     <ScrollView 
@@ -299,6 +335,19 @@ export default function SettingsScreen() {
           loading={loading}
           delay={200}
         />
+
+        <SettingItem 
+          icon={<Download size={22} color={colors.primary[500]} />}
+          title={t('settings.importFromCsv')}
+          right={
+            <Text style={[styles.actionText, { color: colors.primary[600] }]}>
+              {loading ? 'Importing...' : t('settings.importFromCsv')}
+            </Text>
+          }
+          onPress={handleImport}
+          loading={loading}
+          delay={250}
+        />
       </View>
 
       <View style={styles.section}>
@@ -310,14 +359,32 @@ export default function SettingsScreen() {
           icon={<Heart size={22} color={colors.primary[500]} />}
           title={t('settings.rateApp')}
           onPress={() => {}}
-          delay={400}
+          delay={300}
+        />
+
+        <SettingItem 
+          icon={<Info size={22} color={colors.primary[500]} />}
+          title={t('settings.about')}
+          onPress={() => router.push('/about')}
+          delay={350}
         />
         
         <SettingItem 
           icon={<Share2 size={22} color={colors.primary[500]} />}
           title={t('settings.shareWithFriends')}
           onPress={shareApp}
-          delay={500}
+          delay={400}
+        />
+
+        <SettingItem 
+          icon={<ExternalLink size={22} color={colors.primary[500]} />}
+          title="GitHub Repository"
+          onPress={() => {
+            if (Platform.OS === 'web') {
+              window.open('https://github.com/Jessili8/DailyFive', '_blank');
+            }
+          }}
+          delay={450}
         />
       </View>
 
@@ -327,96 +394,3 @@ export default function SettingsScreen() {
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  contentContainer: {
-    padding: spacing.lg,
-  },
-  section: {
-    marginBottom: spacing.xl,
-    paddingBottom: spacing.lg,
-    borderBottomWidth: 1,
-  },
-  sectionTitle: {
-    fontFamily: fontFamily.medium,
-    fontSize: fontSizes.xs,
-    marginBottom: spacing.md,
-  },
-  themeSelector: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: spacing.sm,
-  },
-  themeOption: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: spacing.md,
-    borderRadius: borderRadius.md,
-    borderWidth: 1,
-    gap: spacing.xs,
-  },
-  themeOptionText: {
-    fontFamily: fontFamily.medium,
-    fontSize: fontSizes.sm,
-  },
-  settingItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
-    borderRadius: borderRadius.lg,
-    borderWidth: 1,
-    marginBottom: spacing.sm,
-  },
-  settingItemLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-  },
-  settingItemTitle: {
-    fontFamily: fontFamily.medium,
-    fontSize: fontSizes.md,
-  },
-  settingItemRight: {},
-  actionText: {
-    fontFamily: fontFamily.semibold,
-    fontSize: fontSizes.sm,
-  },
-  versionText: {
-    fontFamily: fontFamily.regular,
-    fontSize: fontSizes.xs,
-    textAlign: 'center',
-    marginTop: spacing.lg,
-    marginBottom: spacing.xxxl,
-  },
-  languageButton: {
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.sm,
-  },
-  languageText: {
-    fontFamily: fontFamily.semibold,
-    fontSize: fontSizes.sm,
-  },
-  languageOptions: {
-    marginTop: -spacing.xs,
-    marginBottom: spacing.sm,
-    gap: spacing.xs,
-  },
-  languageOption: {
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
-    borderRadius: borderRadius.md,
-    borderWidth: 1,
-  },
-  languageOptionText: {
-    fontFamily: fontFamily.medium,
-    fontSize: fontSizes.md,
-    textAlign: 'center',
-  },
-});
