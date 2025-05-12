@@ -2,6 +2,12 @@ export type Language = 'en' | 'zh';
 
 export const translations = {
   en: {
+    tabs: {
+      today: 'Today',
+      history: 'History',
+      settings: 'Settings',
+      about: 'About',
+    },
     settings: {
       appearance: 'APPEARANCE',
       light: 'Light',
@@ -27,8 +33,26 @@ export const translations = {
       noEntries: 'No entries yet. Start recording your daily highlights!',
       selectDate: 'Select Date',
     },
+    about: {
+      title: 'The Power of Daily Gratitude',
+      inspiration: "Inspired by renowned actress Song Hye-kyo's personal practice, Daily Five is more than just an app – it's a journey toward mindful appreciation and joy in everyday life.",
+      practice: "Song Hye-kyo shared that she maintains a daily ritual of writing down five things she's grateful for, a practice that has profoundly impacted her perspective and well-being. This simple yet powerful habit helps cultivate a positive mindset and reminds us of the beauty in our daily experiences.",
+      whyFiveTitle: 'Why Five Things?',
+      whyFiveText: 'The number five is significant yet achievable. It encourages us to look beyond the obvious and discover deeper sources of gratitude in our lives. Whether it's a warm cup of coffee, a friend's smile, or a moment of peace, every detail matters.',
+      scienceTitle: 'The Science of Gratitude',
+      scienceIntro: 'Research shows that practicing gratitude can lead to:',
+      benefits: 'Increased happiness and life satisfaction|Better sleep quality|Reduced stress and anxiety|Improved relationships|Greater resilience in challenging times',
+      practiceTitle: 'Your Daily Practice',
+      practiceText: "We encourage you to make this practice your own. Take a moment each day to reflect on what brings you joy, what you're thankful for, or what made your day special. Over time, you'll build a beautiful collection of memories and gratitude that you can look back on.",
+    },
   },
   zh: {
+    tabs: {
+      today: '今天',
+      history: '歷史',
+      settings: '設定',
+      about: '關於',
+    },
     settings: {
       appearance: '外觀',
       light: '淺色',
@@ -53,6 +77,18 @@ export const translations = {
     history: {
       noEntries: '還沒有紀錄。開始記錄你的每日感恩吧！',
       selectDate: '選擇日期',
+    },
+    about: {
+      title: '每日感恩的力量',
+      inspiration: '受宋慧喬女士個人習慣的啟發，「每日五事」不僅是一個應用程式，更是一趟邁向正念感恩與日常喜悅的旅程。',
+      practice: '宋慧喬分享她每天都會記下五件感恩的事，這個習慣深深影響了她的觀點和幸福感。這個簡單卻強大的習慣有助於培養積極的心態，提醒我們欣賞生活中的美好。',
+      whyFiveTitle: '為什麼是五件事？',
+      whyFiveText: '五這個數字既有意義又容易達成。它鼓勵我們超越表面，發掘生活中更深層的感恩源泉。無論是一杯溫暖的咖啡、朋友的微笑，還是片刻的寧靜，每個細節都彌足珍貴。',
+      scienceTitle: '感恩的科學',
+      scienceIntro: '研究表明，培養感恩習慣可以帶來：',
+      benefits: '提升幸福感和生活滿意度|改善睡眠品質|減輕壓力和焦慮|改善人際關係|增強面對挑戰的韌性',
+      practiceTitle: '你的每日練習',
+      practiceText: '我們鼓勵你建立屬於自己的感恩習慣。每天花點時間反思帶給你快樂的事物，你感謝的事，或是讓這一天特別的時刻。隨著時間推移，你將建立起一個美好的回憶和感恩集合，可以在未來回顧。',
     },
   },
 } as const;

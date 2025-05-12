@@ -2,9 +2,11 @@ import React from 'react';
 import { Tabs } from 'expo-router';
 import { Pencil, Calendar, Settings, Info } from 'lucide-react-native';
 import { useTheme } from '@/context/ThemeContext';
+import { useLanguage } from '@/context/LanguageContext';
 
 export default function TabLayout() {
   const { colors, isDark } = useTheme();
+  const { t } = useLanguage();
 
   return (
     <Tabs
@@ -31,7 +33,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Today',
+          title: t('tabs.today'),
           tabBarIcon: ({ color, size }) => <Pencil size={size} color={color} />,
           headerShown: true,
         }}
@@ -39,7 +41,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="history"
         options={{
-          title: 'History',
+          title: t('tabs.history'),
           tabBarIcon: ({ color, size }) => <Calendar size={size} color={color} />,
           headerShown: true,
         }}
@@ -47,7 +49,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="settings"
         options={{
-          title: 'Settings',
+          title: t('tabs.settings'),
           tabBarIcon: ({ color, size }) => <Settings size={size} color={color} />,
           headerShown: true,
         }}
@@ -55,7 +57,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="about"
         options={{
-          title: 'About',
+          title: t('tabs.about'),
           tabBarIcon: ({ color, size }) => <Info size={size} color={color} />,
           headerShown: true,
         }}
