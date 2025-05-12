@@ -39,12 +39,7 @@ export default function AboutScreen() {
               onPress={() => router.back()}
               style={{ marginRight: spacing.md }}
             />
-          ),
-          headerRight: () => (
-            <TouchableOpacity onPress={openGitHub}>
-              <Github color={colors.primary[500]} size={24} />
-            </TouchableOpacity>
-          ),
+          )
         }} 
       />
       
