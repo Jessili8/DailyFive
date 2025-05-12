@@ -386,7 +386,7 @@ export default function SettingsScreen() {
 
         <SettingItem 
           icon={<ExternalLink size={22} color={colors.primary[500]} />}
-          title="GitHub Repository"
+          title={t('settings.github')}
           onPress={() => {
             if (Platform.OS === 'web') {
               window.open('https://github.com/Jessili8/DailyFive', '_blank');
