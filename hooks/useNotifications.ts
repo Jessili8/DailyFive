@@ -1,35 +1,70 @@
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Notifications from 'expo-notifications';
+import * as Device from 'expo-device';
 
 const NOTIFICATION_ENABLED_KEY = 'daily_five_notifications_enabled';
 
+// Configure default notification behavior
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
+
 export function useNotifications() {
   const enableNotifications = async () => {
-    if (Platform.OS === 'web') {
-      // Web Notifications API
-      if ('Notification' in window) {
-        try {
+    try {
+      if (Platform.OS === 'web') {
+        // Web Notifications API
+        if ('Notification' in window) {
           const permission = await Notification.requestPermission();
           if (permission === 'granted') {
             await AsyncStorage.setItem(NOTIFICATION_ENABLED_KEY, 'true');
-            // Schedule notification for 8 PM daily
             scheduleWebNotification();
             return true;
           }
-        } catch (error) {
-          console.error('Error enabling notifications:', error);
         }
+        return false;
+      } else {
+        // Mobile notifications
+        if (!Device.isDevice) {
+          alert('Notifications are only supported on physical devices');
+          return false;
+        }
+
+        const { status: existingStatus } = await Notifications.getPermissionsAsync();
+        let finalStatus = existingStatus;
+
+        if (existingStatus !== 'granted') {
+          const { status } = await Notifications.requestPermissionsAsync();
+          finalStatus = status;
+        }
+
+        if (finalStatus !== 'granted') {
+          alert('Failed to get notification permissions');
+          return false;
+        }
+
+        // Schedule daily notification
+        await scheduleMobileNotification();
+        await AsyncStorage.setItem(NOTIFICATION_ENABLED_KEY, 'true');
+        return true;
       }
+    } catch (error) {
+      console.error('Error enabling notifications:', error);
       return false;
     }
-    return false;
   };
 
   const disableNotifications = async () => {
     await AsyncStorage.setItem(NOTIFICATION_ENABLED_KEY, 'false');
     if (Platform.OS === 'web') {
-      // Clear any scheduled notifications
       clearWebNotification();
+    } else {
+      await Notifications.cancelAllScheduledNotificationsAsync();
     }
   };
 
@@ -39,10 +74,8 @@ export function useNotifications() {
   };
 
   const scheduleWebNotification = () => {
-    // Clear any existing notification
     clearWebNotification();
 
-    // Calculate time until 8 PM today
     const now = new Date();
     const scheduledTime = new Date(
       now.getFullYear(),
@@ -53,27 +86,43 @@ export function useNotifications() {
       0
     );
 
-    // If it's past 8 PM, schedule for tomorrow
     if (now > scheduledTime) {
       scheduledTime.setDate(scheduledTime.getDate() + 1);
     }
 
     const timeUntilNotification = scheduledTime.getTime() - now.getTime();
 
-    // Schedule the notification
     const timerId = setTimeout(() => {
       if ('Notification' in window) {
         new Notification('Daily Five Reminder', {
           body: "Time to reflect on today's moments of gratitude!",
           icon: '/favicon.png'
         });
-        // Schedule next day's notification
         scheduleWebNotification();
       }
     }, timeUntilNotification);
 
-    // Store the timer ID
     window.dailyFiveNotificationTimer = timerId;
+  };
+
+  const scheduleMobileNotification = async () => {
+    // Cancel existing notifications
+    await Notifications.cancelAllScheduledNotificationsAsync();
+
+    // Schedule new daily notification at 8 PM
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: 'Daily Five Reminder',
+        body: "Time to reflect on today's moments of gratitude!",
+        sound: true,
+        priority: Notifications.AndroidNotificationPriority.HIGH,
+      },
+      trigger: {
+        hour: 20,
+        minute: 0,
+        repeats: true,
+      },
+    });
   };
 
   const clearWebNotification = () => {
