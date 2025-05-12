@@ -16,6 +16,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { format, subDays, addDays } from 'date-fns';
 import { useTheme } from '@/context/ThemeContext';
+import { useLanguage } from '@/context/LanguageContext';
 import EntryInput from '@/components/EntryInput';
 import ProgressIndicator from '@/components/ProgressIndicator';
 import SaveButton from '@/components/SaveButton';
@@ -25,6 +26,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 
 export default function TodayScreen() {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const { saveEntries, getEntriesByDate } = useEntries();
   
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -118,7 +120,7 @@ export default function TodayScreen() {
             </View>
             
             <Text style={[styles.title, { color: colors.text }]}>
-              What made this day great?
+              {t('today.whatMadeThisGreat')}
             </Text>
             <ProgressIndicator count={completedCount} total={5} />
           </Animated.View>
@@ -133,7 +135,7 @@ export default function TodayScreen() {
                 <EntryInput
                   value={entry}
                   onChangeText={(text) => handleChangeText(index, text)}
-                  placeholder={`Good thing #${index + 1}`}
+                  placeholder={`${t('today.goodThing')} #${index + 1}`}
                   number={index + 1}
                 />
               </Animated.View>
@@ -146,6 +148,7 @@ export default function TodayScreen() {
           isLoading={isSaving}
           isComplete={saveComplete}
           disabled={completedCount === 0}
+          text={t('today.saveEntries')}
         />
       </KeyboardAvoidingView>
     </SafeAreaView>

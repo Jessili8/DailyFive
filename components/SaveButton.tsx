@@ -18,6 +18,7 @@ interface SaveButtonProps {
   isLoading: boolean;
   isComplete: boolean;
   disabled?: boolean;
+  text: string;
 }
 
 const SaveButton: React.FC<SaveButtonProps> = ({
@@ -25,6 +26,7 @@ const SaveButton: React.FC<SaveButtonProps> = ({
   isLoading,
   isComplete,
   disabled = false,
+  text,
 }) => {
   const { colors } = useTheme();
   
@@ -116,7 +118,7 @@ const SaveButton: React.FC<SaveButtonProps> = ({
               textOpacity
             ]}
           >
-            Save Entries
+            {text}
           </Animated.Text>
           
           <Animated.View style={[styles.loaderContainer, loaderOpacity]}>
