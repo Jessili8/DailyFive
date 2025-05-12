@@ -9,6 +9,7 @@ import {
   Platform,
 } from 'react-native';
 import { useTheme } from '@/context/ThemeContext';
+import { useLanguage } from '@/context/LanguageContext';
 import {
   Moon,
   Sun,
@@ -17,6 +18,7 @@ import {
   Heart,
   Share2,
   Download,
+  Languages,
 } from 'lucide-react-native';
 import { spacing, fontFamily, fontSizes, borderRadius } from '@/constants/theme';
 import Animated, { FadeInDown } from 'react-native-reanimated';
@@ -26,13 +28,14 @@ import { useNotifications } from '@/hooks/useNotifications';
 
 export default function SettingsScreen() {
   const { colors, theme, setTheme, isDark } = useTheme();
+  const { language, setLanguage, t } = useLanguage();
   const { exportToCSV, loading } = useEntries();
   const { enableNotifications, disableNotifications, getNotificationStatus } = useNotifications();
   
   const [notificationsEnabled, setNotificationsEnabled] = React.useState(false);
+  const [showLanguageOptions, setShowLanguageOptions] = React.useState(false);
 
   useEffect(() => {
-    // Load notification status
     getNotificationStatus().then(setNotificationsEnabled);
   }, []);
 
@@ -91,7 +94,6 @@ export default function SettingsScreen() {
     
     if (csv) {
       if (Platform.OS === 'web') {
-        // Create blob and download for web
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a');
         const url = URL.createObjectURL(blob);
@@ -106,7 +108,6 @@ export default function SettingsScreen() {
   };
 
   const shareApp = () => {
-    // In a real app, this would share the app
     console.log('Share app feature would go here');
   };
 
@@ -120,7 +121,7 @@ export default function SettingsScreen() {
         style={[styles.section, { borderBottomColor: colors.border }]}
       >
         <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
-          APPEARANCE
+          {t('settings.appearance')}
         </Text>
         
         <View style={styles.themeSelector}>
@@ -144,7 +145,7 @@ export default function SettingsScreen() {
                 { color: theme === 'light' ? 'white' : colors.text }
               ]}
             >
-              Light
+              {t('settings.light')}
             </Text>
           </TouchableOpacity>
           
@@ -168,7 +169,7 @@ export default function SettingsScreen() {
                 { color: theme === 'dark' ? 'white' : colors.text }
               ]}
             >
-              Dark
+              {t('settings.dark')}
             </Text>
           </TouchableOpacity>
           
@@ -192,7 +193,7 @@ export default function SettingsScreen() {
                 { color: theme === 'system' ? 'white' : colors.text }
               ]}
             >
-              System
+              {t('settings.system')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -200,12 +201,78 @@ export default function SettingsScreen() {
 
       <View style={[styles.section, { borderBottomColor: colors.border }]}>
         <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
-          PREFERENCES
+          {t('settings.preferences')}
         </Text>
+
+        <SettingItem 
+          icon={<Languages size={22} color={colors.primary[500]} />}
+          title={t('settings.language')}
+          right={
+            <TouchableOpacity
+              onPress={() => setShowLanguageOptions(!showLanguageOptions)}
+              style={styles.languageButton}
+            >
+              <Text style={[styles.languageText, { color: colors.primary[600] }]}>
+                {language === 'en' ? t('settings.english') : t('settings.chinese')}
+              </Text>
+            </TouchableOpacity>
+          }
+          delay={50}
+        />
+
+        {showLanguageOptions && (
+          <View style={styles.languageOptions}>
+            <TouchableOpacity
+              style={[
+                styles.languageOption,
+                { 
+                  backgroundColor: language === 'en' ? colors.primary[500] : colors.surface,
+                  borderColor: colors.border,
+                }
+              ]}
+              onPress={() => {
+                setLanguage('en');
+                setShowLanguageOptions(false);
+              }}
+            >
+              <Text 
+                style={[
+                  styles.languageOptionText,
+                  { color: language === 'en' ? 'white' : colors.text }
+                ]}
+              >
+                English
+              </Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={[
+                styles.languageOption,
+                { 
+                  backgroundColor: language === 'zh' ? colors.primary[500] : colors.surface,
+                  borderColor: colors.border,
+                }
+              ]}
+              onPress={() => {
+                setLanguage('zh');
+                setShowLanguageOptions(false);
+              }}
+            >
+              <Text 
+                style={[
+                  styles.languageOptionText,
+                  { color: language === 'zh' ? 'white' : colors.text }
+                ]}
+              >
+                繁體中文
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
         
         <SettingItem 
           icon={<Bell size={22} color={colors.primary[500]} />}
-          title="Daily Reminder"
+          title={t('settings.dailyReminder')}
           right={
             <Switch
               value={notificationsEnabled}
@@ -222,10 +289,10 @@ export default function SettingsScreen() {
         
         <SettingItem 
           icon={<Download size={22} color={colors.primary[500]} />}
-          title="Export to CSV"
+          title={t('settings.exportToCsv')}
           right={
             <Text style={[styles.actionText, { color: colors.primary[600] }]}>
-              {loading ? 'Exporting...' : 'Export'}
+              {loading ? 'Exporting...' : t('settings.exportToCsv')}
             </Text>
           }
           onPress={handleExport}
@@ -236,26 +303,26 @@ export default function SettingsScreen() {
 
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
-          ABOUT
+          {t('settings.about')}
         </Text>
         
         <SettingItem 
           icon={<Heart size={22} color={colors.primary[500]} />}
-          title="Rate the App"
+          title={t('settings.rateApp')}
           onPress={() => {}}
           delay={400}
         />
         
         <SettingItem 
           icon={<Share2 size={22} color={colors.primary[500]} />}
-          title="Share with Friends"
+          title={t('settings.shareWithFriends')}
           onPress={shareApp}
           delay={500}
         />
       </View>
 
       <Text style={[styles.versionText, { color: colors.textSecondary }]}>
-        Version 1.0.0
+        {t('settings.version')} 1.0.0
       </Text>
     </ScrollView>
   );
@@ -327,5 +394,29 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: spacing.lg,
     marginBottom: spacing.xxxl,
+  },
+  languageButton: {
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
+  },
+  languageText: {
+    fontFamily: fontFamily.semibold,
+    fontSize: fontSizes.sm,
+  },
+  languageOptions: {
+    marginTop: -spacing.xs,
+    marginBottom: spacing.sm,
+    gap: spacing.xs,
+  },
+  languageOption: {
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+  },
+  languageOptionText: {
+    fontFamily: fontFamily.medium,
+    fontSize: fontSizes.md,
+    textAlign: 'center',
   },
 });
