@@ -7,14 +7,14 @@ import {
   ActivityIndicator,
   Platform,
 } from 'react-native';
-import Animated, { FadeIn } from 'react-native-reanimated';
+import Animated, { FadeIn, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { useTheme } from '@/context/ThemeContext';
 import { useEntries } from '@/hooks/useEntries';
 import { format, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay } from 'date-fns';
 import { spacing, fontFamily, fontSizes, borderRadius, shadow } from '@/constants/theme';
 import EntryList from '@/components/EntryList';
 import { useFocusEffect } from 'expo-router';
-import { ChevronLeft, ChevronRight } from 'lucide-react-native';
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, ChevronDown, ChevronUp } from 'lucide-react-native';
 
 interface DailyEntry {
   date: string;
@@ -29,6 +29,7 @@ export default function HistoryScreen() {
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [isCalendarVisible, setIsCalendarVisible] = useState(false);
   
   useFocusEffect(
     React.useCallback(() => {
@@ -76,6 +77,7 @@ export default function HistoryScreen() {
         onPress={() => {
           if (hasEntry) {
             setSelectedDate(format(date, 'yyyy-MM-dd'));
+            setIsCalendarVisible(false);
           }
         }}
         disabled={!hasEntry}
@@ -124,59 +126,82 @@ export default function HistoryScreen() {
   
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <Animated.View 
-        entering={FadeIn.duration(500)}
-        style={styles.calendarContainer}
+      <TouchableOpacity
+        onPress={() => setIsCalendarVisible(!isCalendarVisible)}
+        style={[
+          styles.calendarToggle,
+          { 
+            backgroundColor: colors.card,
+            borderColor: colors.border,
+          },
+          shadow.sm
+        ]}
       >
-        <View style={styles.calendarHeader}>
-          <TouchableOpacity
-            onPress={() => setCurrentMonth(date => new Date(date.setMonth(date.getMonth() - 1)))}
-            style={[styles.monthButton, { backgroundColor: colors.surface }]}
-          >
-            <ChevronLeft size={20} color={colors.textSecondary} />
-          </TouchableOpacity>
-          
-          <Text style={[styles.monthText, { color: colors.text }]}>
-            {format(currentMonth, 'MMMM yyyy')}
-          </Text>
-          
-          <TouchableOpacity
-            onPress={() => setCurrentMonth(date => new Date(date.setMonth(date.getMonth() + 1)))}
-            style={[styles.monthButton, { backgroundColor: colors.surface }]}
-          >
-            <ChevronRight size={20} color={colors.textSecondary} />
-          </TouchableOpacity>
+        <View style={styles.calendarToggleContent}>
+          <View style={styles.calendarToggleLeft}>
+            <CalendarIcon size={20} color={colors.primary[500]} />
+            <Text style={[styles.calendarToggleText, { color: colors.text }]}>
+              {selectedDate ? format(parseISO(selectedDate), 'MMMM d, yyyy') : 'Select Date'}
+            </Text>
+          </View>
+          {isCalendarVisible ? (
+            <ChevronUp size={20} color={colors.textSecondary} />
+          ) : (
+            <ChevronDown size={20} color={colors.textSecondary} />
+          )}
         </View>
+      </TouchableOpacity>
 
-        <View style={[styles.calendar, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <View style={styles.weekDays}>
-            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-              <Text 
-                key={day} 
-                style={[styles.weekDayText, { color: colors.textSecondary }]}
-              >
-                {day}
-              </Text>
-            ))}
-          </View>
-          
-          <View style={styles.calendarDays}>
-            {days.map(date => renderCalendarDay(date))}
-          </View>
-        </View>
-      </Animated.View>
-      
-      {selectedDate && (
+      {isCalendarVisible && (
         <Animated.View 
-          entering={FadeIn.duration(500).delay(300)}
-          style={styles.entriesContainer}
+          entering={FadeIn.duration(300)}
+          style={styles.calendarContainer}
         >
-          <Text style={[styles.selectedDateText, { color: colors.text }]}>
-            {format(parseISO(selectedDate), 'MMMM d, yyyy')}
-          </Text>
-          <EntryList entries={selectedEntries} />
+          <View style={styles.calendarHeader}>
+            <TouchableOpacity
+              onPress={() => setCurrentMonth(date => new Date(date.setMonth(date.getMonth() - 1)))}
+              style={[styles.monthButton, { backgroundColor: colors.surface }]}
+            >
+              <ChevronLeft size={20} color={colors.textSecondary} />
+            </TouchableOpacity>
+            
+            <Text style={[styles.monthText, { color: colors.text }]}>
+              {format(currentMonth, 'MMMM yyyy')}
+            </Text>
+            
+            <TouchableOpacity
+              onPress={() => setCurrentMonth(date => new Date(date.setMonth(date.getMonth() + 1)))}
+              style={[styles.monthButton, { backgroundColor: colors.surface }]}
+            >
+              <ChevronRight size={20} color={colors.textSecondary} />
+            </TouchableOpacity>
+          </View>
+
+          <View style={[styles.calendar, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <View style={styles.weekDays}>
+              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                <Text 
+                  key={day} 
+                  style={[styles.weekDayText, { color: colors.textSecondary }]}
+                >
+                  {day}
+                </Text>
+              ))}
+            </View>
+            
+            <View style={styles.calendarDays}>
+              {days.map(date => renderCalendarDay(date))}
+            </View>
+          </View>
         </Animated.View>
       )}
+      
+      <Animated.View 
+        entering={FadeIn.duration(500)}
+        style={styles.entriesContainer}
+      >
+        <EntryList entries={selectedEntries} />
+      </Animated.View>
     </View>
   );
 }
@@ -202,6 +227,26 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.md,
     textAlign: 'center',
     lineHeight: 24,
+  },
+  calendarToggle: {
+    borderRadius: borderRadius.lg,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+    borderWidth: 1,
+  },
+  calendarToggleContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  calendarToggleLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  calendarToggleText: {
+    fontFamily: fontFamily.medium,
+    fontSize: fontSizes.md,
   },
   calendarContainer: {
     marginBottom: spacing.xl,
@@ -266,10 +311,5 @@ const styles = StyleSheet.create({
   },
   entriesContainer: {
     flex: 1,
-  },
-  selectedDateText: {
-    fontFamily: fontFamily.bold,
-    fontSize: fontSizes.lg,
-    marginBottom: spacing.md,
   },
 });
