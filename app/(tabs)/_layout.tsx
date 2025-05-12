@@ -16,17 +16,23 @@ export default function TabLayout() {
         tabBarStyle: {
           backgroundColor: colors.card,
           borderTopColor: colors.border,
+          height: 64, // Increased height
+          paddingBottom: 12, // Add padding at the bottom
+          paddingTop: 12, // Add padding at the top
         },
         tabBarLabelStyle: {
           fontFamily: 'Inter-Medium',
           fontSize: 12,
+          paddingBottom: 4, // Add some padding below the text
         },
         headerStyle: {
           backgroundColor: colors.card,
+          height: 96, // Increased header height
         },
         headerTitleStyle: {
           fontFamily: 'Inter-SemiBold',
           color: colors.text,
+          fontSize: 18, // Slightly larger font size
         },
         headerShadowVisible: false,
       }}>
