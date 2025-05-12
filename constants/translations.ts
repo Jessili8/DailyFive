@@ -38,7 +38,7 @@ export const translations = {
       inspiration: "Inspired by renowned actress Song Hye-kyo's personal practice, Daily Five is more than just an app – it's a journey toward mindful appreciation and joy in everyday life.",
       practice: "Song Hye-kyo shared that she maintains a daily ritual of writing down five things she's grateful for, a practice that has profoundly impacted her perspective and well-being. This simple yet powerful habit helps cultivate a positive mindset and reminds us of the beauty in our daily experiences.",
       whyFiveTitle: 'Why Five Things?',
-      whyFiveText: 'The number five is significant yet achievable. It encourages us to look beyond the obvious and discover deeper sources of gratitude in our lives. Whether it's a warm cup of coffee, a friend's smile, or a moment of peace, every detail matters.',
+      whyFiveText: 'The number five is significant yet achievable. It encourages us to look beyond the obvious and discover deeper sources of gratitude in our lives. Whether it\'s a warm cup of coffee, a friend\'s smile, or a moment of peace, every detail matters.',
       scienceTitle: 'The Science of Gratitude',
       scienceIntro: 'Research shows that practicing gratitude can lead to:',
       benefits: 'Increased happiness and life satisfaction|Better sleep quality|Reduced stress and anxiety|Improved relationships|Greater resilience in challenging times',
