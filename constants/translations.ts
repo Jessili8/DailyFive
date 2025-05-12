@@ -76,7 +76,7 @@ export const translations = {
     today: {
       whatMadeThisGreat: '今天有什麼值得感恩的事？',
       goodThing: '感恩事項',
-      saveEntries: '儲存紀錄',
+      saveEntries: '儲存',
     },
     history: {
       noEntries: '還沒有紀錄。開始記錄你的每日感恩吧！',
