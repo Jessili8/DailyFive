@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { format, parse } from 'date-fns';
+import { format, parse, isValid } from 'date-fns';
 
 const ENTRIES_STORAGE_KEY = 'daily_five_entries';
 
@@ -145,7 +145,20 @@ export const useEntries = () => {
           value.trim().replace(/^"(.*)"$/, '$1')
         );
 
-        const date = format(parse(values[0], 'MM/dd/yyyy', new Date()), 'yyyy-MM-dd');
+        // Try parsing the date in yyyy-MM-dd format first
+        let parsedDate = parse(values[0], 'yyyy-MM-dd', new Date());
+        
+        // If that fails, try MM/dd/yyyy format
+        if (!isValid(parsedDate)) {
+          parsedDate = parse(values[0], 'MM/dd/yyyy', new Date());
+          
+          // If both formats fail, throw an error
+          if (!isValid(parsedDate)) {
+            throw new Error(`Invalid date format at line ${i + 1}. Use either yyyy-MM-dd or MM/dd/yyyy format.`);
+          }
+        }
+
+        const date = format(parsedDate, 'yyyy-MM-dd');
         const dailyEntries = values.slice(1);
 
         if (dailyEntries.length !== 5) {
