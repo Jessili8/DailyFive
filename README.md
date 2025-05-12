@@ -23,7 +23,7 @@ DailyFive is a beautiful, mindful journaling app inspired by Song Hye-kyo's dail
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/daily-five.git
+git clone https://github.com/Jessili8/daily-five.git
 cd daily-five
 ```
 
