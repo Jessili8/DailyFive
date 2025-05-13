@@ -1,4 +1,4 @@
-# DailyFive [![Netlify Status](https://api.netlify.com/api/v1/badges/ccc25ab1-d5c7-4673-95c5-d3d19ede108b/deploy-status)](https://app.netlify.com/sites/dailyfive/deploys) || ![ts](https://flat.badgen.net/badge/Built%20With/TypeScript/blue
+# DailyFive [![Netlify Status](https://api.netlify.com/api/v1/badges/ccc25ab1-d5c7-4673-95c5-d3d19ede108b/deploy-status)](https://app.netlify.com/sites/dailyfive/deploys) ![ts](https://flat.badgen.net/badge/Built%20With/TypeScript/blue)
 
 DailyFive is a beautiful, mindful journaling app inspired by Song Hye-kyo's daily gratitude practice. Each day, users record five things they're grateful for, fostering positivity and mindfulness in their daily lives.
 
