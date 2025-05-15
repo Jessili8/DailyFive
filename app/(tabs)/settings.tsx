@@ -30,6 +30,8 @@ import { format } from 'date-fns';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useRouter } from 'expo-router';
 import * as FileSystem from 'expo-file-system';
+// @ts-ignore
+import packageJson from '../../../package.json';
 
 export default function SettingsScreen() {
   const { colors, theme, setTheme } = useTheme();
@@ -111,7 +113,7 @@ export default function SettingsScreen() {
 
   const shareApp = async () => {
     try {
-      await Clipboard.setString('https://dailyfive.netlify.app');
+      await Clipboard.setString('https://dailyfive.live');
       alert('Link copied to clipboard!');
     } catch (error) {
       console.error('Failed to copy link:', error);
@@ -396,8 +398,8 @@ export default function SettingsScreen() {
         />
       </View>
 
-      <Text style={[styles.versionText, { color: colors.textSecondary }]}>
-        {t('settings.version')} 1.0.0
+      <Text style={[styles.versionText, { color: colors.textSecondary }]}> 
+        {t('settings.version')} {packageJson.version}
       </Text>
     </ScrollView>
   );
