@@ -30,8 +30,7 @@ import { format } from 'date-fns';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useRouter } from 'expo-router';
 import * as FileSystem from 'expo-file-system';
-// @ts-ignore
-import packageJson from '../../../package.json';
+import { APP_VERSION } from '@/constants/version';
 
 export default function SettingsScreen() {
   const { colors, theme, setTheme } = useTheme();
@@ -399,7 +398,7 @@ export default function SettingsScreen() {
       </View>
 
       <Text style={[styles.versionText, { color: colors.textSecondary }]}> 
-        {t('settings.version')} {packageJson.version}
+        {t('settings.version')} {APP_VERSION}
       </Text>
     </ScrollView>
   );
